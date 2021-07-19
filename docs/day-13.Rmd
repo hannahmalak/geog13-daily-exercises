@@ -1,0 +1,49 @@
+# Hannah Malak
+# 07/14/21
+# Exercise 13 - Simplification
+
+```{r, message = FALSE}
+library(rmapshaper)
+library(tidyverse)
+library(sf)
+library(USAboundaries)
+
+# Get CONUS
+
+US = USAboundaries::us_states()
+CONUS = filter(US, !name %in% c("Alaska", "Hawaii", "Puerto Rico")) %>% 
+  st_union() %>% 
+  st_transform(5070)
+
+# Create CONUS map
+
+ggplot() +
+  geom_sf(data = CONUS)
+
+# Experiment with st_simplify
+
+CONUS_10000 = st_simplify(CONUS, dTolerance = 10000)
+
+# Create st_simplify map
+
+ggplot() +
+  geom_sf(data = CONUS_10000)
+
+# Experiment with ms_simplify
+
+CONUS_5 = ms_simplify(CONUS, keep = .05)
+
+# Create ms_simplify map
+
+ggplot() +
+  geom_sf(data = CONUS_5)
+
+# Find number of points
+
+mapview::npts(CONUS)
+
+mapview::npts(CONUS_10000)
+
+mapview::npts(CONUS_5)
+
+```
