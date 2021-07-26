@@ -1,0 +1,50 @@
+# Hannah Malak
+# 07/22/21
+# Exercise 17 - Leaflet
+
+```{r, message = FALSE, warning = FALSE}
+
+library(sf)
+library(tidyverse)
+library(elevatr)
+library(raster)
+library(rgdal)
+
+# Step 1
+
+goleta = read_csv("../data/uscities.csv") %>% 
+
+# Step 2
+
+  st_as_sf(coords = c("lng", "lat"), crs = 4326) %>% 
+  filter(city == "Goleta") %>% 
+
+# Step 3
+
+  st_transform(5070) %>%
+  st_buffer(5000) %>% 
+  
+# Step 4
+
+  st_bbox() %>% 
+  st_as_sfc() %>% 
+  st_as_sf()
+
+# Step 5
+
+elevation = elevatr::get_elev_raster(goleta, z = 10) %>% 
+  crop(goleta)
+
+# Step 6
+
+plot(elevation)
+
+# Step 7 - Raster Properties
+
+elevation
+
+```
+
+
+
+
