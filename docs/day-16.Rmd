@@ -1,0 +1,43 @@
+# Hannah Malak
+# 07/20/21
+# Exercise 16 - Leaflet
+
+```{r, message = FALSE, warning = FALSE}
+
+library(leaflet)
+library(sf)
+library(tidyverse)
+library(USAboundaries)
+library(readxl)
+
+mississippi = read_sf("../data/majorrivers_0_0") %>% 
+  filter(SYSTEM == "Mississippi")
+
+dams = read_xlsx("../data/NID2019_U.xlsx") %>% 
+  filter(!is.na(LONGITUDE), !is.na(LATITUDE)) %>% 
+  st_as_sf(coords = c("LATITUDE", "LONGITUDE"), crs = 4326)
+
+largest_nid_storage = dams %>% 
+  filter(!STATE %in% c("AK", "PR", "HI")) %>% 
+  filter(HAZARD == "H") %>% 
+  group_by(STATE) %>% 
+  slice_max(NID_STORAGE, n = 1) 
+
+leaflet() %>% 
+  addProviderTiles(providers$CartoDB) %>% 
+  addPolylines(data = mississippi) %>% 
+  addCircleMarkers(data = largest_nid_storage,
+                   radius = ~NID_STORAGE/1500000,
+                   color = "red",
+                   fillOpacity = .5,
+                   stroke = FALSE,
+                   popup = leafpop::popupTable(
+                     st_drop_geometry(largest_nid_storage[1:4]), 
+                     feature.id = FALSE, row.number = FALSE))
+
+```
+
+
+
+
+
