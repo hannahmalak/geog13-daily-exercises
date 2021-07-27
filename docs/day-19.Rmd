@@ -1,6 +1,6 @@
 # Hannah Malak
 # 07/26/21
-# Exercise 19 - Open Street Map
+# Exercise 19 - Open Street Map Exercise
 
 ```{r, warning = FALSE, message = FALSE}
 
