@@ -1,0 +1,58 @@
+# Hannah Malak
+# 07/23/21
+# Exercise 18 - Raster Data Manipulation
+
+```{r, warning = FALSE, message = FALSE}
+
+library(sf)
+library(tidyverse)
+library(elevatr)
+library(raster)
+library(rgdal)
+
+# From Daily Exercise 17
+
+goleta = read_csv("../data/uscities.csv") %>% 
+  st_as_sf(coords = c("lng", "lat"), crs = 4326) %>% 
+  filter(city == "Goleta") %>% 
+  st_transform(5070) %>%
+  st_buffer(5000) %>% 
+  st_bbox() %>% 
+  st_as_sfc() %>% 
+  st_as_sf()
+
+elevation = elevatr::get_elev_raster(goleta, z = 10) %>% 
+  crop(goleta)
+writeRaster(elevation, filename = "../data/goleta-elevation.tif", overwrite = TRUE)
+
+# Step 1
+
+raster_threshold = function(x) {ifelse(x > 0 , 1, NA)} 
+
+# Step 2
+
+elev_calc = calc(elevation, raster_threshold)
+
+# Step 3
+
+land_isol = elevation * elev_calc
+
+# Step 4
+
+rcl = data.frame(min = seq(0,500,100), max = seq(100,600,100), lab = c(0:5))
+reclass = reclassify(land_isol, rcl, lowerTRUE = TRUE)
+
+# Step 5 + 6
+
+stack = stack(elevation, elev_calc, land_isol, reclass) %>% 
+  setNames(c("elevation", "land", "terrain", "topography"))
+
+# Step 7
+
+plot(stack, col = viridis::viridis(256))
+
+```
+
+
+
+

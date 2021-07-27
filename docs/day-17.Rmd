@@ -1,6 +1,6 @@
 # Hannah Malak
 # 07/22/21
-# Exercise 17 - Leaflet
+# Exercise 17 - Raster
 
 ```{r, message = FALSE, warning = FALSE}
 
