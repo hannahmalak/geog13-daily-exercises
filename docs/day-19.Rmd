@@ -1,0 +1,80 @@
+# Hannah Malak
+# 07/26/21
+# Exercise 19 - Open Street Map
+
+```{r, warning = FALSE, message = FALSE}
+
+library(sf)
+library(tidyverse)
+library(elevatr)
+library(raster)
+library(rgdal)
+library(osmdata)
+library(leaflet)
+library(raster)
+
+# From Daily Exercise 17
+
+goleta = read_csv("../data/uscities.csv") %>% 
+  st_as_sf(coords = c("lng", "lat"), crs = 4326) %>% 
+  filter(city == "Goleta") %>% 
+  st_transform(5070) %>%
+  st_buffer(5000) %>% 
+  st_bbox() %>% 
+  st_as_sfc() %>% 
+  st_as_sf()
+
+elevation = elevatr::get_elev_raster(goleta, z = 10) %>% 
+  crop(goleta)
+writeRaster(elevation, filename = "../data/goleta-elevation.tif", overwrite = TRUE)
+
+# From Daily Exercise 18
+
+raster_threshold = function(x) {ifelse(x > 0 , 1, NA)} 
+
+elev_calc = calc(elevation, raster_threshold)
+
+land_isol = elevation * elev_calc
+
+rcl = data.frame(min = seq(0,500,100), max = seq(100,600,100), lab = c(0:5))
+reclass = reclassify(land_isol, rcl, lowerTRUE = TRUE)
+
+stack = stack(elevation, elev_calc, land_isol, reclass) %>% 
+  setNames(c("elevation", "land", "terrain", "topography"))
+
+plot(stack, col = viridis::viridis(256))
+
+# Step 1
+
+goleta_bbox = st_bbox(stack) %>% 
+  st_as_sfc() %>% 
+  st_transform(4326)
+
+# Step 2
+
+osm_restaurant = osmdata::opq(goleta_bbox) %>% 
+  add_osm_feature(key = 'amenity', value = 'restaurant') %>% 
+  osmdata_sf()
+
+goleta_restaurant = osm_restaurant$osm_points %>% 
+  filter(name != 'NA')
+
+goleta_restaurant_elev = goleta_restaurant %>% 
+  mutate(elev = raster::extract(elevation, goleta_restaurant))
+
+goleta_popup = paste(goleta_restaurant_elev$elev)
+
+# Step 3
+
+leaflet() %>%
+  addProviderTiles(providers$CartoDB) %>%
+  addMarkers(data = st_transform(goleta_restaurant_elev, 4326),
+             label = ~name,
+             popup = goleta_popup) 
+
+```
+
+
+
+
+
