@@ -1,0 +1,44 @@
+# Hannah Malak
+# 07/28/21
+# Exercise 21 - Terrain Processing
+
+```{r, warning = FALSE, message = FALSE}
+
+library(elevatr)
+library(sf)
+library(tidyverse)
+library(raster)
+library(AOI)
+library(whitebox)
+
+mo = AOI::aoi_get("Mount Saint Helens") %>% 
+  AOI::aoi_buffer(.5)
+
+```
+
+```{r, warning = FALSE, message = FALSE, eval = FALSE}
+
+elev  = elevatr::get_elev_raster(mo, z = 12) %>% 
+  crop(mo)
+
+writeRaster(elev, "../data/mt-st-helens-elev.tif", overwrite = TRUE)
+wbt_slope("../data/mt-st-helens-elev.tif", "../data/mt-st-helens-slope.tif")
+wbt_aspect("../data/mt-st-helens-elev.tif", "../data/mt-st-helens-aspect.tif")
+wbt_hillshade("../data/mt-st-helens-elev.tif", "../data/mt-st-helens-hillshade.tif")
+
+```
+
+```{r, warning = FALSE, message = FALSE, eval = TRUE}
+
+plot(raster("../data/mt-st-helens-elev.tif"),  box = FALSE, axes = FALSE, col = viridis::viridis(256), main = "Elevation")
+
+plot(raster("../data/mt-st-helens-slope.tif"),  box = FALSE, axes = FALSE, col = terrain.colors(256), main = "Slope")
+
+plot(raster("../data/mt-st-helens-aspect.tif"),  box = FALSE, axes = FALSE, col = rainbow(8), main = "Aspect")
+
+plot(raster("../data/mt-st-helens-hillshade.tif"),  box = FALSE, axes = FALSE, col = gray.colors(256, alpha = .8), main = "Hillshade")
+
+```
+
+
+
