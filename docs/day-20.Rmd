@@ -1,0 +1,44 @@
+# Hannah Malak
+# 07/27/21
+# Exercise 20 - Climate Classification
+
+```{r, warning = FALSE, message = FALSE}
+
+library(elevatr)
+library(sf)
+library(tidyverse)
+library(climateR)
+library(USAboundaries)
+library(raster)
+
+AOI = USAboundaries::us_states() %>% 
+  filter(name == "California")
+
+params = c("aet", "tmax", "tmin", "prcp")
+
+california_clim = getTerraClim(AOI, params, startDate = "2018-03-01") %>% 
+  stack() %>% 
+  setNames(params)
+
+plot(california_clim)
+
+values = values(california_clim)
+
+idx = which(!is.na(values))
+
+v = na.omit(values)
+
+vs = scale(v)
+
+california_kmeans = kmeans(vs, 5, iter.max = 100)
+
+clus_raster = california_clim$tmax
+
+values(clus_raster) = NA
+
+clus_raster[idx] = california_kmeans$cluster
+
+plot(clus_raster, col = RColorBrewer::brewer.pal(5, "Spectral"))
+
+```
+
